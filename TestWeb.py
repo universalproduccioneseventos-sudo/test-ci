@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 
-# 1. CONFIGURACIÓN
+# 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(page_title="Test de CI Pro", page_icon="🧠")
 
 # FUNCIÓN PARA REINICIAR
@@ -9,7 +9,6 @@ def reiniciar_test():
     st.session_state.indice = 0
     st.session_state.aciertos = 0
     st.session_state.finalizado = False
-    # Volvemos a elegir preguntas al azar
     st.session_state.preguntas = random.sample(st.session_state.banco, 5)
 
 # 2. INICIALIZACIÓN DEL BANCO (Solo una vez)
@@ -31,21 +30,19 @@ if 'banco' not in st.session_state:
 # 3. INTERFAZ DE USUARIO
 st.title("🧠 Mi Test de CI Interactivo")
 
-# LÓGICA DE CONTROL (Aquí evitamos el IndexError)
+# Lógica para terminar
 if st.session_state.indice >= len(st.session_state.preguntas):
     st.session_state.finalizado = True
 
 if not st.session_state.finalizado:
-    # Mostramos el progreso
+    # Mostramos progreso
     progreso = (st.session_state.indice) / len(st.session_state.preguntas)
     st.progress(progreso)
     
-    # Pregunta actual
     pregunta_actual = st.session_state.preguntas[st.session_state.indice]
     st.subheader(f"Pregunta {st.session_state.indice + 1}:")
     st.write(f"### {pregunta_actual[0]}")
 
-    # Botones de respuesta
     col1, col2, col3 = st.columns(3)
     
     if col1.button(f"A) {pregunta_actual[1]}", key=f"btn_a_{st.session_state.indice}"):
@@ -64,11 +61,29 @@ if not st.session_state.finalizado:
         st.rerun()
 
 else:
-    # 4. PANTALLA FINAL DE RESULTADOS
+    # 4. PANTALLA FINAL CON TABLA DE RANGOS
     st.balloons()
     ci = 70 + (st.session_state.aciertos * 12)
-    st.success("## ¡Felicidades! Has terminado el test.")
-    st.metric("Tu Coeficiente Intelectual estimado es:", ci)
+    st.success(f"## ¡Test Finalizado!")
+    st.metric("Tu Coeficiente Intelectual estimado es:", int(ci))
     
+    st.divider()
+    st.subheader("📊 Tabla de Interpretación")
+    
+    # Datos de la tabla
+    tabla_rangos = {
+        "Puntaje CI": ["130+", "120-129", "110-119", "90-109", "80-89", "<80"],
+        "Clasificación": ["Muy Superior (Genio)", "Superior", "Promedio Alto", "Promedio Normal", "Promedio Bajo", "Muy Bajo"]
+    }
+    st.table(tabla_rangos)
+    
+    # Comentario final
+    if ci >= 130:
+        st.info("💡 ¡Nivel Genio! Tu capacidad lógica es extraordinaria.")
+    elif ci >= 100:
+        st.info("🚀 ¡Muy bien! Estás en el rango normal o superior.")
+    else:
+        st.warning("📚 Sigue entrenando tu mente con ejercicios de lógica.")
+
     if st.button("Intentar de nuevo", on_click=reiniciar_test):
         st.rerun()
